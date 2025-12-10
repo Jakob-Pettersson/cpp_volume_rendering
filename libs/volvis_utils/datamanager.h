@@ -90,6 +90,14 @@ namespace vis
     std::string GetCurrentTransferFunctionName ();
     vis::TransferFunction* GetCurrentTransferFunction ();
 
+    // Added by Jakob
+    // ---
+    bool* GetUse2DTransferFunction();
+    int GetCurrent2DTransferFunctionIndex ();
+    std::string GetCurrent2DTransferFunctionName ();
+    vis::TransferFunction* GetCurrent2DTransferFunction ();
+    // ---
+
     void AddDataLookUpShader (gl::PipelineShader* ext_shader);
     void AddDataLookUpShader (gl::ComputeShader* ext_shader);
 
@@ -106,7 +114,9 @@ namespace vis
     bool PreviousTransferFunction ();
     bool NextTransferFunction ();
     bool SetTransferFunction (std::string name);
+    bool Set2DTransferFunction (std::string name); // Added by Jakob
     bool SetCurrentTransferFunction (int id);
+	bool SetCurrent2DTransferFunction(int id); // Added by Jakob
 
     bool UpdateStructuredGradientTexture ();
     int GetCurrentGradientGenerationTypeID ();
@@ -118,14 +128,17 @@ namespace vis
  
     std::vector<std::string>& GetUINameDatasetList ();
     std::vector<std::string>& GetUINameTransferFunctionList ();
+    std::vector<std::string>& GetUIName2DTransferFunctionList ();
 
     void DeleteVolumeData ();
     void DeleteTransferFunctionData ();
+	void Delete2DTransferFunctionData(); // Added by Jakob
     void DeleteGradientData ();
   protected:
 #ifndef USE_DATA_PROVIDER
     void ReadStructuredDatasetsFromRes ();
     void ReadTransferFunctionsFromRes ();
+    void Read2DTransferFunctionsFromRes ();
 #endif
 
     bool GenerateStructuredVolumeTexture ();
@@ -153,6 +166,14 @@ namespace vis
     int curr_volume_index;
     int curr_transferfunction_index;
 
+	// Added by Jakob
+	// ---
+    vis::TransferFunction* curr_vr_2d_transferfunction;
+
+    int curr_2d_transferfunction_index;
+	bool use_2d_transfer_function;
+    // ---
+
     STRUCTURED_GRADIENT_TYPE curr_gradient_comp_model;
     gl::Texture3D* curr_gl_tex_structured_gradient;
 
@@ -164,9 +185,11 @@ namespace vis
     // structured, unstructured and transfer function list...
     std::vector<DataReference> stored_structured_datasets;
     std::vector<DataReference> stored_transfer_functions;
+	std::vector<DataReference> stored_2d_transfer_functions; // Added by Jakob
 
     std::vector<std::string> ui_dataset_names;
     std::vector<std::string> ui_transferf_names;
+    std::vector<std::string> ui_2d_transferf_names; // Added by Jakob
 #endif
   private:
 

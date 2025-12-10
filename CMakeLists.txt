@@ -33,3 +33,14 @@ add_subdirectory(cppvolrend)
 
 # cmake -G "Visual Studio 15 2017 Win64"
 # https://cognitivewaves.wordpress.com/cmake-and-visual-studio/
+
+set(ImageMagick_DIR "C:/Program Files/ImageMagick-7.1.2-Q16-HDRI")
+
+include_directories(
+    "${ImageMagick_DIR}/include"
+)
+
+link_directories(
+    "${ImageMagick_DIR}/lib"
+)
+

@@ -787,7 +787,37 @@ void RenderingManager::SetImGuiInterface ()
       delete[] tf_rgb_img;
     }
 
+    if (ImGui::Button("Export 2D Transfer Function Image###BTNexportimagetf2d"))
+    {
+      int img_w = 256, img_h = 256;
+      GLubyte* tf_rgb_img = new GLubyte[img_w * img_h * 3];
+	  printf("Exporting 2D TF image\n");
+      glm::vec4 clr = m_data_mgr.GetCurrent2DTransferFunction()->Get((double(0) / double(img_w)) * 255.0, (double(0) / double(img_w)) * 255.0);
 
+      /*for (int i = 0; i < img_w; i++)
+      {
+        for (int j = 0; j < img_h; j++)
+        {
+          glm::vec4 clr = m_data_mgr.GetCurrent2DTransferFunction()->Get((double(i) / double(img_w)) * 255.0, (double(j) / double(img_w)) * 255.0);
+          int idx = (i + (j * img_w)) * 3;
+          tf_rgb_img[idx + 0] = clr.r * 255.0;
+          tf_rgb_img[idx + 1] = clr.g * 255.0;
+          tf_rgb_img[idx + 2] = clr.b * 255.0;
+        }
+      }
+      
+      {
+        std::string out_tf_str = "transfer_function.png";
+        GenerateImgFile(
+          out_tf_str, 
+          img_w, img_h, 
+          tf_rgb_img,
+          false
+        );
+      }
+
+      delete[] tf_rgb_img;*/
+    }
 
     ImGui::PushID("Viewport Data");
     ImGui::Text("- Viewport:");
@@ -1100,30 +1130,52 @@ void RenderingManager::SetImGuiInterface ()
       }
     }
     ImGui::Separator();
-    if (ImGui::CollapsingHeader("Transfer Function###DataMdanagerTransferFunction"))
+    if (ImGui::CollapsingHeader("Transfer Functions###DataMdanagerTransferFunction"))
     {
-      int transfer_function_index = m_data_mgr.GetCurrentTransferFunctionIndex();
-      std::vector<std::string>& ui_tf_names = m_data_mgr.GetUINameTransferFunctionList();
-      if (ImGui::Combo("###CurrentTransferFunction1DID", &transfer_function_index, vector_getter,
-        static_cast<void*>(&ui_tf_names), ui_tf_names.size()))
+	  bool* use_2d_tf = m_data_mgr.GetUse2DTransferFunction();
+      if (ImGui::Checkbox("2D Transfer Function###2DTransferFunction", use_2d_tf))
       {
+		printf("2D Transfer Function set to %d\n", (int)*use_2d_tf); // Debug
+      }
+      if (!*use_2d_tf)
+      {
+        int transfer_function_index = m_data_mgr.GetCurrentTransferFunctionIndex();
+        std::vector<std::string>& ui_tf_names = m_data_mgr.GetUINameTransferFunctionList();
+        if (ImGui::Combo("###CurrentTransferFunction1DID", &transfer_function_index, vector_getter,
+        static_cast<void*>(&ui_tf_names), ui_tf_names.size()))
+        {
         if (transfer_function_index != m_data_mgr.GetCurrentTransferFunctionIndex())
         {
-          m_data_mgr.SetCurrentTransferFunction(transfer_function_index);
-          UpdateDataAndResetCurrentVRMode();
+            m_data_mgr.SetCurrentTransferFunction(transfer_function_index);
+            UpdateDataAndResetCurrentVRMode();
         }
-      }
-      ImGui::SameLine();
-      if (ImGui::Button("<###PreviousTF"))
-      {
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("<###PreviousTF"))
+        {
         m_data_mgr.PreviousTransferFunction();
         UpdateDataAndResetCurrentVRMode();
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(">###NextTF"))
-      {
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(">###NextTF"))
+        {
         m_data_mgr.NextTransferFunction();
         UpdateDataAndResetCurrentVRMode();
+        }
+      }
+      else 
+      {
+        int transfer_function_index = m_data_mgr.GetCurrent2DTransferFunctionIndex();
+        std::vector<std::string>& ui_2d_tf_names = m_data_mgr.GetUIName2DTransferFunctionList();
+        if (ImGui::Combo("###CurrentTransferFunction2DID", &transfer_function_index, vector_getter,
+        static_cast<void*>(&ui_2d_tf_names), ui_2d_tf_names.size()))
+        {
+          if (transfer_function_index != m_data_mgr.GetCurrent2DTransferFunctionIndex())
+          {
+            m_data_mgr.SetCurrent2DTransferFunction(transfer_function_index);
+            UpdateDataAndResetCurrentVRMode();
+          }
+        }
       }
     }
     ImGui::End();

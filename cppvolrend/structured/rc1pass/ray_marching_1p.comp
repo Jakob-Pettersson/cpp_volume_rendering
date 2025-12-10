@@ -131,7 +131,7 @@ void main ()
       
         // Get normalized density from volume
         float density = texture(TexVolume, s_tex_pos / VolumeGridSize).r;
-        
+            
         // Get color from transfer function given the normalized density
         vec4 src = 
           //vec4(density)

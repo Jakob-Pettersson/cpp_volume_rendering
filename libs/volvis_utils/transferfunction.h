@@ -6,6 +6,7 @@
 #define VOL_VIS_UTILS_TRANSFER_FUNCTION_H
 
 #include <gl_utils/texture1d.h>
+#include <gl_utils/texture2d.h>
 
 #include <glm/glm.hpp>
 
@@ -52,7 +53,7 @@ namespace vis
 
     virtual const char* GetNameClass () = 0;
 
-    virtual glm::vec4 Get (double value, double max_input_value = -1.0) = 0;
+    virtual glm::vec4 Get (double valueX, double valueY = -1.0, double max_input_value = -1.0) = 0;
 
     virtual float GetOpc (double value, double max_input_value = -1.0) { return -1.0; }
     virtual float GetOpcN (double normalized_value) { return -1.0; }
@@ -61,6 +62,8 @@ namespace vis
 
     virtual gl::Texture1D* GenerateTexture_1D_RGBA () { return NULL; }
     virtual gl::Texture1D* GenerateTexture_1D_RGBt () { return NULL; }
+
+    virtual gl::Texture2D* GenerateTexture_2D_RGBt () { return NULL; } // Added by Jakob
     
     std::string GetName () { return m_name; }
     void SetName (std::string name) { m_name = name; }

@@ -27,6 +27,9 @@ namespace vis
     , curr_gradient_comp_model(DataManager::STRUCTURED_GRADIENT_TYPE::NONE_GRADIENT)
     , curr_gl_tex_structured_volume(nullptr)
     , curr_gl_tex_structured_gradient(nullptr)
+	, curr_vr_2d_transferfunction(nullptr) // Added by Jakob
+	, curr_2d_transferfunction_index(0) // Added by Jakob
+	, use_2d_transfer_function(false) // Added by Jakob
   {
     m_path_to_data = "";
 #ifdef USE_DATA_PROVIDER
@@ -35,9 +38,11 @@ namespace vis
     // structured, unstructured and transfer function list...
     stored_structured_datasets.clear();
     stored_transfer_functions.clear();
+    stored_2d_transfer_functions.clear();
 
     ui_dataset_names.clear();
     ui_transferf_names.clear();
+    ui_2d_transferf_names.clear();
 #endif
   }
 
@@ -80,15 +85,18 @@ namespace vis
 #else
     stored_structured_datasets.clear();
     stored_transfer_functions.clear();
+    stored_2d_transfer_functions.clear();
 
     ui_dataset_names.clear();
     ui_transferf_names.clear();
+    ui_2d_transferf_names.clear();
 
     if (curr_vol_data_type == vis::GRID_VOLUME_DATA_TYPE::STRUCTURED)
       ReadStructuredDatasetsFromRes();
 #endif
 
     ReadTransferFunctionsFromRes();
+    Read2DTransferFunctionsFromRes();
 
     if (curr_vol_data_type == vis::GRID_VOLUME_DATA_TYPE::STRUCTURED)
     {
@@ -98,6 +106,8 @@ namespace vis
     vis::TransferFunctionReader tfr;
     curr_vr_transferfunction = tfr.ReadTransferFunction(stored_transfer_functions[GetCurrentTransferFunctionIndex()].path);
     curr_vr_transferfunction->SetName(stored_transfer_functions[GetCurrentTransferFunctionIndex()].name);
+	curr_vr_2d_transferfunction = tfr.Read2DTransferFunction(stored_2d_transfer_functions[GetCurrent2DTransferFunctionIndex()].path);
+	curr_vr_2d_transferfunction->SetName(stored_2d_transfer_functions[GetCurrent2DTransferFunctionIndex()].name);
   }
 
   int DataManager::GetNumberOfStructuredDatasets ()
@@ -150,6 +160,11 @@ namespace vis
     return curr_vr_transferfunction;
   }
 
+  vis::TransferFunction* DataManager::GetCurrent2DTransferFunction()
+  {
+    return curr_vr_2d_transferfunction;
+  }
+
   void DataManager::AddDataLookUpShader (gl::PipelineShader* ext_shader)
   {
     if (GetInputVolumeDataType() == vis::GRID_VOLUME_DATA_TYPE::STRUCTURED)
@@ -173,14 +188,29 @@ namespace vis
     }
   }
 
+  bool* DataManager::GetUse2DTransferFunction() 
+  {
+	  return &use_2d_transfer_function;
+  }
+
   int DataManager::GetCurrentTransferFunctionIndex ()
   {
     return curr_transferfunction_index;
   }
   
+  int DataManager::GetCurrent2DTransferFunctionIndex ()
+  {
+    return curr_2d_transferfunction_index;
+  }
+
   std::string DataManager::GetCurrentTransferFunctionName ()
   {
     return stored_transfer_functions[GetCurrentTransferFunctionIndex()].name;
+  }
+
+  std::string DataManager::GetCurrent2DTransferFunctionName ()
+  {
+    return stored_transfer_functions[GetCurrent2DTransferFunctionIndex()].name;
   }
 
   gl::Texture3D* DataManager::GetCurrentVolumeTexture ()
@@ -199,6 +229,15 @@ namespace vis
     return m_data_provider->GetTransferFunctionNameList();
 #else
     return ui_transferf_names;
+#endif
+  }
+
+  std::vector<std::string>& DataManager::GetUIName2DTransferFunctionList ()
+  {
+#ifdef USE_DATA_PROVIDER
+    return m_data_provider->Get2DTransferFunctionNameList();
+#else
+    return ui_2d_transferf_names;
 #endif
   }
 
@@ -226,6 +265,12 @@ namespace vis
   {
     if (curr_vr_transferfunction) delete curr_vr_transferfunction;
     curr_vr_transferfunction = nullptr;
+  }
+
+  void DataManager::Delete2DTransferFunctionData ()
+  {
+    if (curr_vr_2d_transferfunction) delete curr_vr_2d_transferfunction;
+    curr_vr_2d_transferfunction = nullptr;
   }
 
 #ifndef USE_DATA_PROVIDER
@@ -305,6 +350,43 @@ namespace vis
 
     for (int i = 0; i < stored_transfer_functions.size(); i++)
       ui_transferf_names.push_back(stored_transfer_functions[i].name);
+  }
+
+  void DataManager::Read2DTransferFunctionsFromRes ()
+  {
+    std::string line;
+    std::string tfunc_read_filename = m_path_to_data;
+    tfunc_read_filename.append("/#list_2D_transfer_functions");
+    std::ifstream f_open2dtransferfunctions(tfunc_read_filename);
+
+    if (!f_open2dtransferfunctions.is_open())
+    {
+      std::cout << "Error: Unable to read vol rendering 2D transfer functions." << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+    std::cout << "Reading 2D Transfer Functions...";
+    while (!f_open2dtransferfunctions.eof())
+    {
+      line.clear();
+      std::getline(f_open2dtransferfunctions, line);
+
+      int start_path = line.find_first_of("<") + 1;
+      int end_path = line.find_first_of(">");
+
+      int start_name = line.find_last_of("<") + 1;
+      int end_name = line.find_last_of(">");
+
+      stored_2d_transfer_functions.push_back(DataReference(
+        line.substr(start_path, end_path - start_path),
+        line.substr(start_name, end_name - start_name),
+        m_path_to_data
+      ));
+    }
+    f_open2dtransferfunctions.close();
+
+    for (int i = 0; i < stored_2d_transfer_functions.size(); i++)
+      ui_2d_transferf_names.push_back(stored_2d_transfer_functions[i].name);
   }
 #endif
 
@@ -480,8 +562,28 @@ namespace vis
     return false;
   }
 
+  bool DataManager::Set2DTransferFunction (std::string name)
+  {
+    for (int i = 0; i < stored_2d_transfer_functions.size(); i++)
+    {
+      if (stored_2d_transfer_functions[i].name.compare(name) == 0)
+      {
+        curr_2d_transferfunction_index = i;
+        Delete2DTransferFunctionData();
+
+        vis::TransferFunctionReader tfr;
+        curr_vr_2d_transferfunction = tfr.Read2DTransferFunction(stored_2d_transfer_functions[curr_2d_transferfunction_index].path);
+        curr_vr_2d_transferfunction->SetName(stored_2d_transfer_functions[curr_2d_transferfunction_index].name);
+
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool DataManager::SetCurrentTransferFunction (int id)
   {
+    
     if (id < stored_transfer_functions.size())
     {
       curr_transferfunction_index = id;
@@ -496,6 +598,23 @@ namespace vis
     return false;
   }
   
+  bool DataManager::SetCurrent2DTransferFunction (int id)
+  {
+    
+    if (id < stored_2d_transfer_functions.size())
+    {
+      curr_2d_transferfunction_index = id;
+      Delete2DTransferFunctionData();
+      
+      vis::TransferFunctionReader tfr;
+      curr_vr_2d_transferfunction = tfr.Read2DTransferFunction(stored_2d_transfer_functions[curr_2d_transferfunction_index].path);
+      curr_vr_2d_transferfunction->SetName(stored_2d_transfer_functions[curr_2d_transferfunction_index].name);
+
+      return true;
+    }
+    return false;
+  }
+
   bool DataManager::UpdateStructuredGradientTexture ()
   {
     DeleteGradientData();

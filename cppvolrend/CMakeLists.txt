@@ -33,6 +33,12 @@ add_executable(cppvolrend
                # GPU Image Order Ray Casting
                structured/rc1pass/rc1prenderer.cpp                             structured/rc1pass/rc1prenderer.h
 
+               # GPU Image Order Ray Casting for 2D transfer functions
+               structured/rc1pass2dtf/rc1prenderer2dtf.cpp                     structured/rc1pass2dtf/rc1prenderer2dtf.h
+
+               # GPU Image Order Iso Ray Casting
+               structured/rc1piso/rc1pisorenderer.cpp                          structured/rc1piso/rc1pisorenderer.h
+
                # GPU Image Order Iso Ray Casting with adaptive step size
                structured/rc1pisoadapt/rc1pisoadaptrenderer.cpp                structured/rc1pisoadapt/rc1pisoadaptrenderer.h
 

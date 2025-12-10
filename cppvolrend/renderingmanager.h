@@ -151,6 +151,11 @@ private:
 
   bool m_imgui_renderer_window;
 
+  // Added by Jakob
+  // ---
+  bool m_2d_transfer_function = false;
+  // ---
+
   std::vector<glm::vec4> s_ref_image;
 
   static void SingleSampleRender (void* data);

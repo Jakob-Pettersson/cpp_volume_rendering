@@ -78,8 +78,12 @@ namespace vis
 
     vis::TransferFunction* ReadTransferFunction (std::string file);
   
+    vis::TransferFunction* Read2DTransferFunction (std::string file);
+
   protected:
     vis::TransferFunction* readtf1d (std::string file);
+
+    vis::TransferFunction* readtf2d (std::string file);
 
   private:
 

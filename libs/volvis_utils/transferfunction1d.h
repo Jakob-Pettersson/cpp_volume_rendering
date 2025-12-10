@@ -37,7 +37,7 @@ namespace vis
     ~TransferFunction1D ();
 
     virtual const char* GetNameClass ();
-    virtual glm::vec4 Get (double value, double max_data_value = -1.0);
+    virtual glm::vec4 Get (double value, double _ = -1.0, double max_data_value = -1.0);
     
     virtual float GetOpc (double value, double max_input_value = -1.0);
     virtual float GetOpcN (double normalized_value);

@@ -129,7 +129,7 @@ namespace vis
     m_built = true;
   }
 
-  glm::vec4 TransferFunction1D::Get (double value, double max_data_value)
+  glm::vec4 TransferFunction1D::Get (double value, double _, double max_data_value)
   {
     if (!m_built)
       Build();
@@ -355,5 +355,6 @@ namespace vis
         m_transferfunction[x].a = m_cpt_alpha[i].m_color.a + diff * k;
       }
     }
+	printf("x: %f y: %f z: %f a: %f\n", m_transferfunction[60].r, m_transferfunction[60].g, m_transferfunction[60].b, m_transferfunction[60][3]);
   }
 }

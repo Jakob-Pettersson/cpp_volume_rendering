@@ -12,6 +12,11 @@
 #include <array>
 
 #include <volvis_utils/transferfunction1d.h>
+#include <volvis_utils/transferfunction2d.h>
+
+#include <im/im.h>
+#include <im/im_image.h>
+#include <filesystem>
 
 namespace vis
 {
@@ -811,5 +816,40 @@ namespace vis
       return ret_tf;
     }
     return nullptr;
+  }
+
+  vis::TransferFunction* TransferFunctionReader::Read2DTransferFunction (std::string file)
+  {
+    TransferFunction* tf_ret = NULL;
+
+    int found = file.find_last_of('.');
+    std::string extension = file.substr(found + 1);
+
+    printf(". Reading 2D Transfer Function\n");
+    printf(" - File: %s\n", file.c_str());
+
+    if (extension.compare("bmp") == 0)
+      tf_ret = readtf2d(file);
+
+    return tf_ret;
+  }
+
+  TransferFunction* TransferFunctionReader::readtf2d (std::string file)
+  {
+
+      if (std::filesystem::exists(file) == false) {
+	    return nullptr;
+      }
+
+      TransferFunction2D* ret_tf = new TransferFunction2D();
+	  ret_tf->SetImagePath(file);
+      int foundname = file.find_last_of('\\');
+      std::string tfname = file.substr(foundname + 1);
+      ret_tf->SetName(file);
+
+      return ret_tf;
+
+      /*int error;
+      imFile* tfImage = imFileOpen(file.c_str(), &error);*/
   }
 }
